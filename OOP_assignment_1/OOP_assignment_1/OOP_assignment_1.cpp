@@ -1,20 +1,78 @@
-// OOP_assignment_1.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+
+struct FlightData {
+    std::string date;
+    std::string flightNo;
+    int seatsInRow = 0;
+    std::vector<std::pair<std::pair<int, int>, int>> rowPrices;
+};
+
+class ConfigReader {
+public:
+    ConfigReader(const std::string& filename) {
+        processFile(filename);
+    }
+
+    const std::vector<FlightData>& getFlightData() const {
+        return flightData;
+    }
+
+private:
+    std::vector<FlightData> flightData;
+
+    void processFile(const std::string& filename) {
+
+        std::ifstream file(filename);
+        std::string line;
+        int numRecords;
+
+        if (!file.is_open()) {
+            std::cerr << "Error opening file :(" << '\n';
+            return;
+        }
+
+        if (getline(file, line)) {
+            std::istringstream(line) >> numRecords;
+        }
+
+        while (getline(file, line)) {
+
+            FlightData data = parseLine(line);
+            flightData.push_back(data);
+        }
+    }
+
+    FlightData parseLine(const std::string& line) {
+
+        std::istringstream stream(line);
+        FlightData data;
+
+        stream >> data.date >> data.flightNo >> data.seatsInRow;
+
+        int rangeStart, rangeEnd, price;
+        char dash;
+
+        while (stream >> rangeStart >> dash >> rangeEnd >> price) {
+            data.rowPrices.push_back(std::make_pair(std::make_pair(rangeStart, rangeEnd), price));
+        }
+
+        return data;
+    }
+};
+
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    ConfigReader configReader("");
+    const auto& flights = configReader.getFlightData();
+
+    for (const auto& flight : flights) {
+        std::cout << "Flight: " << flight.flightNo << '\n';
+    }
+
+    return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
