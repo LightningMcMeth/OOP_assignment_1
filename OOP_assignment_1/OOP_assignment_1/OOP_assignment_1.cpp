@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <map>
 
 struct FlightData {
     std::string date;
@@ -64,15 +65,52 @@ private:
     }
 };
 
+class Airplane {
+public:
+
+    Airplane() {}
+    
+    ~Airplane() {}
+
+private:
+    FlightData flightInfo;
+};
+
+class Ticket {
+public:
+
+private:
+
+};
+
+class UI {
+public:
+
+    UI() {}
+
+    ~UI() {}
+
+    void setFlightData(const std::vector<Airplane>& flights) {
+        this->flights = flights;
+    }
+
+    const std::vector<Airplane>& getFlightData() const {
+        return flights;
+    }
+
+private:
+    std::vector<Airplane> flights;
+
+};
 
 int main()
 {
-    ConfigReader configReader("");
-    const auto& flights = configReader.getFlightData();
+    ConfigReader configReader("C:\\Users\\markh\\OneDrive\\Documents\\Gamer repositories\\OOP\\OOP_assignment_1\\OOP_assignment_1\\test.txt");
+    UI Interface;
 
-    for (const auto& flight : flights) {
-        std::cout << "Flight: " << flight.flightNo << '\n';
-    }
+
+    //Interface.setFlightData(configReader.getFlightData());
+    //std::cout << Interface.getFlightData()[0].flightNo << '\n';
 
     return 0;
 }
