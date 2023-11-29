@@ -69,18 +69,39 @@ class Airplane {
 public:
 
     Airplane() {}
+
+    Airplane(const FlightData& flightInfo) : flightInfo(flightInfo) {}
     
     ~Airplane() {}
 
+    const std::vector<std::string> getBookedSeats() const{
+        return bookedSeats;
+    }
+
 private:
     FlightData flightInfo;
+    std::vector<std::string> bookedSeats;
 };
 
 class Ticket {
 public:
 
-private:
+    Ticket() {}
 
+    Ticket(std::string D, std::string FN, std::string P, std::string N) {
+        Date = D;
+        FlightNo = FN;
+        Place = P;
+        Name = N;
+    }
+
+    ~Ticket() {}
+
+private:
+    std::string Date;
+    std::string FlightNo;
+    std::string Place;
+    std::string Name;
 };
 
 class UI {
@@ -90,27 +111,54 @@ public:
 
     ~UI() {}
 
-    void setFlightData(const std::vector<Airplane>& flights) {
-        this->flights = flights;
+    void setFlightData(const std::vector<FlightData>& flightData) {
+        
+        flights.clear();
+
+        for (const auto& data : flightData) {
+            flights[data.flightNo] = Airplane(data);
+        }
     }
 
-    const std::vector<Airplane>& getFlightData() const {
+    const std::map<std::string, Airplane>& getFlights() const {
         return flights;
     }
 
-private:
-    std::vector<Airplane> flights;
+    //that is not how this method should be written. Still might prove to be useful later on.
+    bool checkSeatAvailability(const std::string& seat, const std::string& FlightNo) {
 
+        auto flight = flights.find(FlightNo);
+
+        if (flight != flights.end()) {
+
+            const auto& bookedSeats = flight->second.getBookedSeats();
+            return std::find(bookedSeats.begin(), bookedSeats.end(), seat) == bookedSeats.end();
+        }
+
+        return false;
+    }
+
+private:
+    std::map<std::string, Airplane> flights;
 };
 
 int main()
 {
-    ConfigReader configReader("C:\\Users\\markh\\OneDrive\\Documents\\Gamer repositories\\OOP\\OOP_assignment_1\\OOP_assignment_1\\test.txt");
+    ConfigReader configReader("test.txt");
     UI Interface;
 
+    Interface.setFlightData(configReader.getFlightData());
 
-    //Interface.setFlightData(configReader.getFlightData());
-    //std::cout << Interface.getFlightData()[0].flightNo << '\n';
+    std::string commandType;
+
+    while (true) {
+
+        std::cout << "Enter your command(check, book, return, view): " << '\n';
+
+        if (commandType == "check") {
+        }
+    }
+    
 
     return 0;
 }
