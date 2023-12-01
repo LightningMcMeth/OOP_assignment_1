@@ -75,7 +75,7 @@ public:
     
     ~Airplane() {}
 
-    const std::vector<std::string>& getBookedSeats() const{
+    std::vector<std::string>& getBookedSeats() {
         return bookedSeats;
     }
 
@@ -109,6 +109,22 @@ public:
         : date(D), flightNo(FN), seat(S), name(N), price(P) {}
 
     ~Ticket() {}
+
+    const std::string getFlightNo() const{
+        return flightNo;
+    }
+
+    const std::string getSeat() const {
+        return seat;
+    }
+
+    const int getSeatPrice() const {
+        return price;
+    }
+
+    const std::string getName() const {
+        return name;
+    }
 
 private:
     std::string date;
@@ -182,6 +198,44 @@ public:
         return std::to_string(ticketId);
     }
 
+    std::string returnTicket(const int& ticketId) {
+
+        auto ticketsI = tickets.find(ticketId);
+
+        if (ticketsI == tickets.end()) {
+
+            std::cout << "Invalid ticket ID.\n";
+            return "";
+        }
+
+        const std::string& flightNo = ticketsI->second.getFlightNo();
+        const std::string& seat = ticketsI->second.getSeat();
+
+        auto flightI = flights.find(flightNo);
+
+        if (flightI != flights.end()) {
+
+            auto& bookedSeats = flightI->second.getBookedSeats();
+            auto seatI = std::find(bookedSeats.begin(), bookedSeats.end(), seat);
+
+            if (seatI != bookedSeats.end()) {
+                bookedSeats.erase(seatI);
+            }
+        }
+        else {
+
+            std::cout << "Flight not found. If this error appears, something is very wrong.\n";
+            return "";
+        }
+
+        std::string price = std::to_string(ticketsI->second.getSeatPrice());
+        std::string name = ticketsI->second.getName();
+        std::string result = "Confirmed $" + price + " refund for " + name;
+
+        tickets.erase(ticketsI);
+        return result;
+    }
+
 private:
     std::map<std::string, Airplane> flights;
     std::map<int,Ticket> tickets;
@@ -242,7 +296,7 @@ private:
                 return priceRange.second;
             }
         }
-        return 0;
+        return 0;   //have to implement error handling if 0 is returned
     }
 };
 
@@ -283,6 +337,19 @@ int main()
         }
         else if (commandType == "return") {
 
+            std::cout << "Enter ticket ID: \n";
+
+            int ticketId;
+            std::cin >> ticketId;
+
+            std::string result = Interface.returnTicket(ticketId);
+
+            if (result == "") {
+                std::cout << "\nCouldn't return ticket.\n";
+            }
+            else {
+                std::cout << result << '\n';
+            }
         }
         else if (commandType == "view") {
             //since depending on the user input, I can defferenciate ID from Username by
