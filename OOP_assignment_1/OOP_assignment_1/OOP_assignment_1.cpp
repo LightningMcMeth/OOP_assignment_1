@@ -12,6 +12,7 @@ struct FlightData {
     std::vector<std::pair<std::pair<int, int>, int>> rowPrices;
 };
 
+
 class ConfigReader {
 public:
     ConfigReader(const std::string& filename) {
@@ -66,6 +67,7 @@ private:
     }
 };
 
+
 class Airplane {
 public:
 
@@ -75,12 +77,24 @@ public:
     
     ~Airplane() {}
 
-    std::vector<std::string>& getBookedSeats() {
+    const std::vector<std::string>& getBookedSeats() const {
         return bookedSeats;
     }
 
     void bookSeat(const std::string& seat) {
         bookedSeats.push_back(seat);
+    }
+
+    void removeSeat(const std::string& seat) {
+
+        auto it = std::find(bookedSeats.begin(), bookedSeats.end(), seat);
+
+        if (it != bookedSeats.end()) {
+            bookedSeats.erase(it);
+        }
+        else {
+            std::cout << "\nInvalid seat.\n";
+        }
     }
 
     const std::string& getDate() const{
@@ -95,10 +109,33 @@ public:
         return flightInfo.rowPrices;
     }
 
+    std::vector<std::pair<std::string, int>> getFreeSeats(const std::string& date, const std::string& flightNo) const {
+
+        std::vector<std::pair<std::string, int>> freeSeats;
+
+        for (const auto& priceRange : flightInfo.rowPrices) {
+
+            for (int rowNum = priceRange.first.first; rowNum <= priceRange.first.second; ++rowNum) {
+
+                for (char seatChar = 'A'; seatChar < 'A' + flightInfo.seatsInRow; ++seatChar) {
+
+                    std::string seat = std::to_string(rowNum) + seatChar;
+
+                    if (std::find(bookedSeats.begin(), bookedSeats.end(), seat) == bookedSeats.end()) {
+                        freeSeats.push_back({ seat, priceRange.second });
+                    }
+                }
+            }
+        }
+
+        return freeSeats;
+    }
+
 private:
     FlightData flightInfo;
     std::vector<std::string> bookedSeats;
 };
+
 
 class Ticket {
 public:
@@ -133,6 +170,7 @@ private:
     std::string name;
     int price = 0;
 };
+
 
 class UI {
 public:
@@ -215,12 +253,7 @@ public:
 
         if (flightI != flights.end()) {
 
-            auto& bookedSeats = flightI->second.getBookedSeats();
-            auto seatI = std::find(bookedSeats.begin(), bookedSeats.end(), seat);
-
-            if (seatI != bookedSeats.end()) {
-                bookedSeats.erase(seatI);
-            }
+            flightI->second.removeSeat(seat);
         }
         else {
 
@@ -234,6 +267,32 @@ public:
 
         tickets.erase(ticketsI);
         return result;
+    }
+
+    void checkAvailableSeats(const std::string& date, const std::string& flightNo) {
+
+        auto flightI = flights.find(flightNo);
+
+        if (flightI != flights.end() && flightI->second.getDate() == date) {
+
+            auto freeSeats = flightI->second.getFreeSeats(date, flightNo);
+
+            std::cout << "\nAvailable seats:\n\n";
+
+            int counter = 0;
+            for (const auto& seatInfo : freeSeats) {
+
+                std::cout << seatInfo.first << "-$" << seatInfo.second << ' ';
+                counter++;
+
+                if (counter % 5 == 0) {
+                    std::cout << '\n';
+                }
+            }
+        }
+        else {
+            std::cout << "Flight not found :(\n";
+        }
     }
 
 private:
@@ -296,18 +355,18 @@ private:
                 return priceRange.second;
             }
         }
-        return 0;   //have to implement error handling if 0 is returned
+        return 0;
     }
 };
+
 
 int main()
 {
     ConfigReader configReader("test.txt");
     UI Interface;
+    std::string commandType;
 
     Interface.setFlightData(configReader.getFlightData());
-
-    std::string commandType;
 
     while (true) {
 
@@ -317,7 +376,12 @@ int main()
 
         if (commandType == "check") {
 
-            std::cout << "gamer\n";
+            std::string date, flightNo;
+            std::cout << "Enter flight date and number: \n";
+            std::cin >> date >> flightNo;
+
+            Interface.checkAvailableSeats(date, flightNo);
+
         }
         else if (commandType == "book") {
 
@@ -355,6 +419,9 @@ int main()
             //since depending on the user input, I can defferenciate ID from Username by
             //checking if the last character of the input string can be converted to an int
             //if you can convert it, you're checking by ID and vise versa
+        }
+        else if (commandType == "gamer") {
+            return 0;
         }
     }
     
