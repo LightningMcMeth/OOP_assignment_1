@@ -147,20 +147,24 @@ public:
 
     ~Ticket() {}
 
-    const std::string getFlightNo() const{
+    const std::string& getFlightNo() const{
         return flightNo;
     }
 
-    const std::string getSeat() const {
+    const std::string& getSeat() const {
         return seat;
     }
 
-    const int getSeatPrice() const {
+    const int& getSeatPrice() const {
         return price;
     }
 
-    const std::string getName() const {
+    const std::string& getName() const {
         return name;
+    }
+
+    const std::string& getDate() const {
+        return date;
     }
 
 private:
@@ -295,6 +299,48 @@ public:
         }
     }
 
+    void viewTicketById(const int& ticketId) {
+
+        auto ticketI = tickets.find(ticketId);
+
+        if (ticketI == tickets.end()) {
+
+            std::cout << "Invalid ID.\n";
+            return;
+        }
+
+        const Ticket& ticket = ticketI->second;
+
+        std::cout << "Flight " << ticket.getFlightNo() << ", " << ticket.getDate() << ", seat " << ticket.getSeat() 
+                  << ", price $" << ticket.getSeatPrice() << ", " << ticket.getName() << '\n';
+    }
+
+    void viewTicketsByUsername(const std::string& username) {
+
+        bool found = false;
+        int count = 1;
+
+        for (const auto& ticketP : tickets) {
+
+            const Ticket& ticket = ticketP.second;
+
+            if (ticket.getName() == username) {
+
+                std::cout << count << ". Flight " << ticket.getFlightNo() << ", " << ticket.getDate() << ", seat " 
+                          << ticket.getSeat() << ", price $" << ticket.getSeatPrice() << '\n';
+
+                found = true;
+                count++;
+            }
+        }
+
+        if (!found) {
+            std::cout << "No tickets found for " << username << ".\n";
+        }
+    }
+
+
+
 private:
     std::map<std::string, Airplane> flights;
     std::map<int,Ticket> tickets;
@@ -416,11 +462,22 @@ int main()
             }
         }
         else if (commandType == "view") {
-            //since depending on the user input, I can defferenciate ID from Username by
-            //checking if the last character of the input string can be converted to an int
-            //if you can convert it, you're checking by ID and vise versa
+            
+            std::cout << "Enter ticket ID or a username: \n";
+            std::string input;
+            std::cin >> input;
+
+            std::istringstream iss(input);
+            int ticketId;
+
+            if (iss >> ticketId && iss.eof()) {
+                Interface.viewTicketById(ticketId);
+            }
+            else {
+                Interface.viewTicketsByUsername(input);
+            }
         }
-        else if (commandType == "gamer") {
+        else if (commandType == "exit") {
             return 0;
         }
     }
