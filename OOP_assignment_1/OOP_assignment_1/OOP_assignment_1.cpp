@@ -122,7 +122,7 @@ public:
                     std::string seat = std::to_string(rowNum) + seatChar;
 
                     if (std::find(bookedSeats.begin(), bookedSeats.end(), seat) == bookedSeats.end()) {
-                        freeSeats.push_back({ seat, priceRange.second });
+                        freeSeats.push_back({ move(seat), priceRange.second });
                     }
                 }
             }
@@ -144,6 +144,31 @@ public:
 
     Ticket(const std::string& D, const std::string& FN, const std::string& S, const std::string& N, const int& P)
         : date(D), flightNo(FN), seat(S), name(N), price(P) {}
+
+    Ticket(Ticket&& other) noexcept
+        : date(std::move(other.date)),
+        flightNo(std::move(other.flightNo)),
+        seat(std::move(other.seat)),
+        name(std::move(other.name)),
+        price(other.price) {
+    }
+
+    Ticket& operator=(const Ticket& other) = default;
+
+    Ticket& operator=(Ticket&& other) noexcept {
+
+        if (this != &other) {
+            date = std::move(other.date);
+            flightNo = std::move(other.flightNo);
+            seat = std::move(other.seat);
+            name = std::move(other.name);
+            price = other.price;
+            other.price = 0;
+        }
+
+        return *this;
+    }
+
 
     ~Ticket() {}
 
@@ -233,7 +258,7 @@ public:
         }
 
         Ticket userTicket(Date, FlightNo, seat, Username, seatPrice);
-        tickets[ticketId] = userTicket;
+        tickets[ticketId] = std::move(userTicket);
 
         flightI->second.bookSeat(seat);
 
@@ -318,7 +343,7 @@ public:
     void viewTicketsByUsername(const std::string& username) {
 
         bool found = false;
-        int count = 1;
+        int count = 0;
 
         for (const auto& ticketP : tickets) {
 
